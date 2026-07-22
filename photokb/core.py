@@ -685,7 +685,9 @@ def iter_images(sources):
             print(f"[warn] source not found: {src}", file=sys.stderr)
             continue
         for p in sorted(src.rglob("*")):
-            if p.is_file() and p.suffix.lower() in IMAGE_EXTS:
+            # Skip hidden/AppleDouble files (e.g. ._DSC0001.JPG sidecars on
+            # external drives) — they match the extension but aren't real images.
+            if p.is_file() and p.suffix.lower() in IMAGE_EXTS and not p.name.startswith("."):
                 yield p
 
 
