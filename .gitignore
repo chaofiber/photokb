@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# macOS
+.DS_Store
+
+# Personal setup notes (kept local, not part of the public tool)
+ONBOARDING.md
+
+# Local data that should never be committed
+gallery.html
+.photokb/
+.trash/
