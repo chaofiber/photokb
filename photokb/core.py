@@ -490,7 +490,8 @@ def frontmatter(m) -> str:
           _scalar("aperture", m.get("aperture")), _scalar("shutter", m.get("shutter")),
           _scalar("iso", m.get("iso"))]
     fm.append(_list("gps", m["gps"], inline_numeric=True) if m.get("gps") else "gps:")
-    fm += [_scalar("location", m.get("location")), _scalar("setting", m.get("setting")),
+    fm += [_scalar("location", m.get("location")), _scalar("collection", m.get("collection")),
+           _scalar("setting", m.get("setting")),
            _list("scene", m.get("scene")), _list("objects", m.get("objects")),
            _scalar("time_of_day", m.get("time_of_day")), _scalar("weather", m.get("weather")),
            _scalar("season", m.get("season")), _list("style", m.get("style")),
@@ -737,7 +738,7 @@ def build(sources, vault, force=False, limit=None, batch=8, debug=False):
             tags = analyze(engine, emb)
             if debug:
                 print(f"  {f.name}: {tags}")
-            m = _assemble(f, asset_name, exif, colors, tags)
+            m = _assemble(f, asset_name, exif, colors, tags, _collection_of(f, sources))
             note_rel = f"{PHOTOS_DIR}/{m['note_name']}"
             write_note(vault / note_rel, m)
             index.upsert({"stem": f.stem, "note": note_rel, "image": asset_name,
@@ -750,14 +751,30 @@ def build(sources, vault, force=False, limit=None, batch=8, debug=False):
     print(f"[build] done. {done} notes written, {removed} stale pruned.")
 
 
-def _assemble(f, asset_name, exif, colors, tags):
+GENERIC_DIRS = {"jpg", "jpeg", "png", "raw", "export", "exports", "out", "output"}
+
+
+def _collection_of(f, sources):
+    """Short label for which source folder a photo came from (for filtering)."""
+    for root in sources:
+        try:
+            f.relative_to(root)
+        except ValueError:
+            continue
+        name = root.name
+        return root.parent.name if name.lower() in GENERIC_DIRS else name
+    return None
+
+
+def _assemble(f, asset_name, exif, colors, tags, collection=None):
     scene, objects, style = tags["scene"], tags["objects"], tags["style"]
     singles = [tags.get(k) for k in ("setting", "time_of_day", "weather", "season")]
     keywords = []
-    for x in scene + objects + style + colors + [s for s in singles if s]:
+    for x in ([collection] if collection else []) + scene + objects + style + colors + [s for s in singles if s]:
         if x not in keywords:
             keywords.append(x)
-    tag_src = ["photo"] + ([tags["setting"]] if tags["setting"] else []) + scene + objects[:4] + style
+    tag_src = (["photo"] + ([collection] if collection else [])
+               + ([tags["setting"]] if tags["setting"] else []) + scene + objects[:4] + style)
     if tags["time_of_day"]:
         tag_src.append(tags["time_of_day"])
     tagslugs = []
@@ -767,7 +784,8 @@ def _assemble(f, asset_name, exif, colors, tags):
             tagslugs.append(sl)
     note_name = (f"{exif['date']} {f.stem}.md" if exif.get("date") else f"{f.stem}.md")
     return {"image": asset_name, "original": str(f), "note_name": note_name,
-            "colors": colors, "tags": tagslugs, "keywords": keywords, **exif, **tags}
+            "collection": collection, "colors": colors, "tags": tagslugs,
+            "keywords": keywords, **exif, **tags}
 
 
 # ---------------------------------------------------------------------------

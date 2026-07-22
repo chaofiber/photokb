@@ -151,6 +151,7 @@ def collect(vault: Path):
             "objects": fm.get("objects") or [], "time_of_day": fm.get("time_of_day"),
             "weather": fm.get("weather"), "season": fm.get("season"),
             "style": fm.get("style") or [], "colors": fm.get("colors") or [],
+            "collection": fm.get("collection"),
             "camera": fm.get("camera"), "lens": fm.get("lens"), "focal": fm.get("focal_length"),
             "aperture": fm.get("aperture"), "shutter": fm.get("shutter"), "iso": fm.get("iso"),
             "rating": fm.get("rating"), "gps": fm.get("gps") or None,
@@ -297,12 +298,12 @@ const PHOTOS = DATA.photos, EMB = DATA.emb, VAULT = DATA.vault;
 const COLOR_HEX={black:'#111',"dark gray":'#555',gray:'#9aa0a6',white:'#f2f2f2',red:'#e5484d',
   orange:'#f5820b',yellow:'#f5d90a',green:'#46a758',teal:'#12a594',blue:'#3b82f6',purple:'#8e4ec6',
   pink:'#e93d82',brown:'#8b5a2b',beige:'#dcc79a'};
-const FACETS=[["scene","Scene"],["objects","Objects"],["setting","Setting"],["time_of_day","Time"],
+const FACETS=[["collection","Collection"],["scene","Scene"],["objects","Objects"],["setting","Setting"],["time_of_day","Time"],
   ["style","Style"],["colors","Colors"],["camera","Camera"]];
 const asArr=v=>Array.isArray(v)?v:(v==null||v===""?[]:[v]);
 const active={}; let sim=null;
 PHOTOS.forEach(p=>{p._ar=(p.w&&p.h)?p.w/p.h:1.5;
-  p._blob=[p.stem,p.camera,p.lens,p.setting,p.time_of_day,p.weather,p.season,
+  p._blob=[p.stem,p.collection,p.camera,p.lens,p.setting,p.time_of_day,p.weather,p.season,
     ...(p.scene||[]),...(p.objects||[]),...(p.style||[]),...(p.colors||[])].filter(Boolean).join(" ").toLowerCase();});
 const $=id=>document.getElementById(id);
 const SERVED=location.protocol.startsWith('http');   // delete only when served by `pkb serve`
